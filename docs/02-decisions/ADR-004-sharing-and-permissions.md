@@ -1,6 +1,6 @@
 # ADR-004 — Sharing scope and permissions
 
-**Status:** Accepted (2026-09-25). Partly superseded by [ADR-010](ADR-010-household-membership-lifecycle.md): capabilities now live on Membership.
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-010](ADR-010-household-membership-lifecycle.md): capabilities now live on Membership. Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): sync rules are now Sync Streams (AM-02), and moving a task to the household is an online-only server function (AM-11).
 
 ## Context
 - Tasks are private by default and shared with the household by opt-in, with one merged Today view (C1).

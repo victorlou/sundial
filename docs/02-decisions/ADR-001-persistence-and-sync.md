@@ -1,6 +1,6 @@
 # ADR-001 — Persistence and sync engine
 
-**Status:** Accepted (2026-09-25).
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): the sync spike moves to P0 with a fallback that meets R4 (AM-01), downloads use Sync Streams (AM-02), and server functions and triggers may generate IDs (AM-08).
 
 ## Context
 - Every device must work fully offline (NFR-01).

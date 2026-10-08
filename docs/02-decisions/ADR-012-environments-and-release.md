@@ -1,6 +1,6 @@
 # ADR-012 — Environments and release process
 
-**Status:** Accepted (2026-09-30).
+**Status:** Accepted (2026-09-30). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): a scheduled GitHub Action, not Xcode Cloud, keeps the Prod build fresh (AM-06).
 **How-to:** [06-environments-and-release.md](../06-environments-and-release.md). This ADR records only *why*.
 
 ## Context

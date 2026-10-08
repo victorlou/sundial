@@ -1,6 +1,6 @@
 # ADR-002 — Hosting, cost, and backups
 
-**Status:** Accepted (2026-09-25).
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): sync rules are now Sync Streams (AM-02).
 
 ## Context
 - Budget is about $10/mo now and about $25/mo later. The backend should be easy to "turn off" (R2).

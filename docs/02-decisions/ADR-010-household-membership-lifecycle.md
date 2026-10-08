@@ -1,6 +1,6 @@
 # ADR-010 — Household membership lifecycle
 
-**Status:** Accepted (2026-09-25). Partly supersedes ADR-003 (Member becomes Profile + Membership) and ADR-004 (capabilities move to Membership).
+**Status:** Accepted (2026-09-25). Partly supersedes ADR-003 (Member becomes Profile + Membership) and ADR-004 (capabilities move to Membership). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): several households per person also couple personal tasks to one household's slots (AM-09), lifecycle functions use the caller's logical date (AM-10), and two more operations are online-only (AM-13).
 
 ## Context
 - The domain model needs clear answers to these questions: what creates a household, how people join or leave one, and whether we need an owner or admin role.

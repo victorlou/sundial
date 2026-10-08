@@ -1,6 +1,6 @@
 # ADR-003 — Identity: Account vs. Member vs. Device
 
-**Status:** Accepted (2026-09-25). Partly superseded by [ADR-010](ADR-010-household-membership-lifecycle.md): Member is now Profile + Membership.
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-010](ADR-010-household-membership-lifecycle.md): Member is now Profile + Membership. Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): pairing a kid's own device is Later (AM-03).
 
 ## Context
 - Both profiles and accounts must be valid, and linking a profile to an account later is a feature (B3).
@@ -26,7 +26,7 @@
 - **P3:** members from other households join through invites.
 
 ## Consequences
-- Every event records `actorMemberId` (who it's credited to). The server also knows `auth.uid()` (which account or device submitted it). These can differ, and that's by design: the shared iPad ticks for Leo.
+- Every event records `actorMemberId` (who it's credited to). The server also knows `auth.uid()` (which account or device submitted it). These can differ, and that's by design: the shared iPad ticks for Dave.
 - The server rule is: an account may write events for **itself**, or for **members it has the `actForOthers` capability on**.
-- The limit (R4): the server can't tell Leo and Mia apart on the same iPad. That separation is enforced only in the app.
+- The limit (R4): the server can't tell Carol and Dave apart on the same iPad. That separation is enforced only in the app.
 - Device pairing and anonymous auth are **P4+ spikes**. Supabase supports anonymous sign-in, but linking identities natively [currently has limitations](https://github.com/supabase/supabase-swift/issues/588), so pairing will probably go through an Edge Function that redeems the code.

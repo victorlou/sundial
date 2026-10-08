@@ -1,6 +1,6 @@
 # Decisions — index
 
-**Status:** All accepted. ADR-001 to 010 on 2026-09-25, ADR-011 on 2026-09-29, ADR-012 on 2026-09-30. To change a decision, write a new ADR that supersedes it. Accepted ADRs only get editorial fixes.
+**Status:** All accepted. ADR-001 to 010 on 2026-09-25, ADR-011 on 2026-09-29, ADR-012 on 2026-09-30, ADR-013 on 2026-10-07. To change a decision, write a new ADR that supersedes it. Accepted ADRs only get editorial fixes.
 
 | ADR | Decision | Options | Accepted | Hinges on |
 |---|---|---|---|---|
@@ -16,6 +16,7 @@
 | [010](ADR-010-household-membership-lifecycle.md) | Household membership lifecycle | A. Owner role + `createdBy`<br>**B. Profile + Membership + capabilities**<br>C. Optional household | **B**, plus HH-01 to HH-07 | Joining and leaving must keep history and personal data intact |
 | [011](ADR-011-data-deletion-and-retention.md) | Data deletion and retention | A. Hard-delete now<br>**B. Soft-delete + purge**<br>C. Soft-delete forever | **B**, 30 days for account deletion, 180 days otherwise | Recover from mistakes without breaking privacy law |
 | [012](ADR-012-environments-and-release.md) | Environments and release | A. Local + Prod<br>**B. Local + Dev + Prod**<br>C. + staging | **B**, separate app variants, Xcode Cloud from P2, TestFlight for the family | Real devices for testing, without risking family data |
+| [013](ADR-013-board-review-amendments.md) | Board review amendments | **A. One ADR for all amendments**<br>B. One ADR per amended ADR<br>C. Edit the accepted ADRs | **A**: amends 001, 002, 003, 004, 007, 008, 010, 011, and 012, one row per change (AM-01 onward) | Accepted ADRs are never rewritten |
 
 ## How they fit together
 
@@ -24,10 +25,9 @@ flowchart LR
   subgraph Device["iPhone / iPad"]
     UI["Features<br/>(SwiftUI + @Observable)"] --> Dom["Domain<br/>(pure models + recurrence engine)"]
     Data["Data<br/>(repositories)"] --> Dom
-    UI --> Data
     Data --> PS[("PowerSync SQLite<br/>+ upload queue")]
   end
-  PS <-- "sync rules<br/>(download)" --> PSS["PowerSync Service"]
+  PS <-- "sync streams<br/>(download)" --> PSS["PowerSync Service"]
   PS -- "upload handler<br/>(REST/RPC)" --> SB[("Supabase Postgres<br/>RLS + functions")]
   SB -- "logical replication" --> PSS
   SB -. "nightly pg_dump" .-> S3[("S3 backup")]

@@ -1,9 +1,9 @@
 # ADR-008 — App structure and modularity
 
-**Status:** Accepted (2026-09-25).
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): sync rules are now Sync Streams (AM-02).
 
 ## Context
-- The developer is new to iOS app architecture, and every layer must be understandable (A1, NFR-09).
+- The architecture must be learnable, and every layer must be understandable (A1, NFR-09).
 - Widgets and a Mac app are planned for later (B1).
 - The domain must be testable on its own (NFR-05).
 

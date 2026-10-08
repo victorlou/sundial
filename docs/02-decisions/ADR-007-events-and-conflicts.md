@@ -1,6 +1,6 @@
 # ADR-007 — Completion records and conflict resolution
 
-**Status:** Accepted (2026-09-25).
+**Status:** Accepted (2026-09-25). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): when two devices create the same row, the whole row from the last upload wins (AM-07), and *Change task scope* may rewrite an action's scope (AM-12).
 
 ## Context
 - Every device works offline, so two devices can tick the same thing, one can undo while another ticks, and so on.

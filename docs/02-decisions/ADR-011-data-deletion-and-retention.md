@@ -1,6 +1,6 @@
 # ADR-011 — Data deletion and retention
 
-**Status:** Accepted (2026-09-29).
+**Status:** Accepted (2026-09-29). Partly superseded by [ADR-013](ADR-013-board-review-amendments.md): sync rules are now Sync Streams (AM-02), RLS read policies don't filter deleted rows (AM-04), the account-deletion purge is built in P2, with a 60-day disclosure (AM-05), a household is deleted only through account deletion (AM-14), deleted unlinked profiles are anonymized at purge (AM-15), and history is kept indefinitely only in family use (AM-16).
 
 ## Context
 - Several flows "delete" things:
