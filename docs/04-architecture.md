@@ -63,7 +63,7 @@ flowchart LR
 
 ```
 /ios
-  TaskOrganizer.xcodeproj        thin App target (composition root)
+  Sundial.xcodeproj              thin App target (composition root)
   Packages/
     Domain/                      pure Swift, no dependencies
     Data/                        PowerSync, Supabase, repositories

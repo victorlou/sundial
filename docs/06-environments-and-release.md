@@ -14,10 +14,10 @@ Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
 |              | **Local**                                                                       | **Dev**                                                         | **Prod**                                                          |
 | ------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Purpose      | Everyday coding                                                                 | Trying finished changes on real devices                         | Real family use                                                   |
-| Backend      | Supabase CLI (Docker) + PowerSync Open Edition (Docker)                         | Supabase project `taskorganizer-dev` + PowerSync instance `dev` | Supabase project `taskorganizer-prod` + PowerSync instance `prod` |
-| App variant  | Debug build from Xcode                                                          | **Task Organizer Dev** (orange icon)                            | **Task Organizer**                                                |
-| Bundle ID    | `<BUNDLE_PREFIX>.taskorganizer.dev`                                             | `<BUNDLE_PREFIX>.taskorganizer.dev`                             | `<BUNDLE_PREFIX>.taskorganizer`                                   |
-| App Group    | `group.<BUNDLE_PREFIX>.taskorganizer.dev`                                       | same as Local                                                   | `group.<BUNDLE_PREFIX>.taskorganizer`                             |
+| Backend      | Supabase CLI (Docker) + PowerSync Open Edition (Docker)                         | Supabase project `sundial-dev` + PowerSync instance `dev` | Supabase project `sundial-prod` + PowerSync instance `prod` |
+| App variant  | Debug build from Xcode                                                          | **Sundial Dev** (orange icon)                            | **Sundial**                                                |
+| Bundle ID    | `<BUNDLE_PREFIX>.sundial.dev`                                             | `<BUNDLE_PREFIX>.sundial.dev`                             | `<BUNDLE_PREFIX>.sundial`                                   |
+| App Group    | `group.<BUNDLE_PREFIX>.sundial.dev`                                       | same as Local                                                   | `group.<BUNDLE_PREFIX>.sundial`                             |
 | Installed by | Xcode, on the simulator (a physical device can't reach `localhost`, so use Dev) | TestFlight                                                      | TestFlight (ADR-012 E-4)                                          |
 | Data         | Seed scripts, reset at will                                                     | Seed scripts plus whatever gets typed in while testing          | Real data. **Never copied anywhere else**, except as §7 lists.                        |
 | Region       | —                                                                               | `us-east-1`                                                     | `us-east-1`                                                       |
@@ -38,10 +38,10 @@ Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
 
 | Xcode build configuration | Scheme                | Settings file           | Variant | Backend |
 | ------------------------- | --------------------- | ----------------------- | ------- | ------- |
-| `Debug-Local`             | TaskOrganizer (Local) | `Config/Local.xcconfig` | Dev     | Local   |
-| `Debug-Dev`               | TaskOrganizer (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
-| `Release-Dev`             | TaskOrganizer (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
-| `Release-Prod`            | TaskOrganizer (Prod)  | `Config/Prod.xcconfig`  | Prod    | Prod    |
+| `Debug-Local`             | Sundial (Local) | `Config/Local.xcconfig` | Dev     | Local   |
+| `Debug-Dev`               | Sundial (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
+| `Release-Dev`             | Sundial (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
+| `Release-Prod`            | Sundial (Prod)  | `Config/Prod.xcconfig`  | Prod    | Prod    |
 
 
 **Keys in each settings file**, exposed to code through `Info.plist` and read in one place in `App`:
