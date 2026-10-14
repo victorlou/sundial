@@ -1,0 +1,13 @@
+// Settings file for the Dev backend (docs/06-environments-and-release.md §2).
+#include "Base.xcconfig"
+
+BUNDLE_ID = $(BUNDLE_PREFIX).sundial.dev
+APP_DISPLAY_NAME = Sundial Dev
+APP_ICON_NAME = AppIcon-Dev
+APP_GROUP_ID = group.$(BUNDLE_ID)
+
+// Filled in when the dev backend exists (P2).
+SUPABASE_URL =
+SUPABASE_PUBLISHABLE_KEY =
+POWERSYNC_URL =
+BACKEND_ENV = Dev

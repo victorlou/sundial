@@ -8,3 +8,13 @@
 
 # Local working files
 .local/
+
+# Xcode (the project is generated from ios/project.yml)
+ios/Sundial.xcodeproj/
+xcuserdata/
+DerivedData/
+.build/
+.swiftpm/
+
+# Per-developer code signing (docs/07-local-development.md)
+ios/Config/Signing.local.xcconfig
