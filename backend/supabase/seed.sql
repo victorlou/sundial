@@ -1,0 +1,2 @@
+-- Deterministic seed data (06 §3). Runs after every migration on `supabase db reset`.
+-- Empty until P2's migrations add the tables.
