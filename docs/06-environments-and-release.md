@@ -4,7 +4,7 @@
 **Rationale:** [ADR-012](02-decisions/ADR-012-environments-and-release.md).
 **Read this when:** you're configuring builds, running the backend locally, writing a migration, changing sync streams, releasing, handling test data, or turning the backend off.
 
-Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
+The bundle ID prefix, `io.github.victorlou`, was fixed in P0. Someone signing with another team overrides it locally ([07](07-local-development.md)).
 
 ---
 
@@ -16,8 +16,8 @@ Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
 | Purpose      | Everyday coding                                                                 | Trying finished changes on real devices                         | Real family use                                                   |
 | Backend      | Supabase CLI (Docker) + PowerSync Open Edition (Docker)                         | Supabase project `sundial-dev` + PowerSync instance `dev` | Supabase project `sundial-prod` + PowerSync instance `prod` |
 | App variant  | Debug build from Xcode                                                          | **Sundial Dev** (orange icon)                            | **Sundial**                                                |
-| Bundle ID    | `<BUNDLE_PREFIX>.sundial.dev`                                             | `<BUNDLE_PREFIX>.sundial.dev`                             | `<BUNDLE_PREFIX>.sundial`                                   |
-| App Group    | `group.<BUNDLE_PREFIX>.sundial.dev`                                       | same as Local                                                   | `group.<BUNDLE_PREFIX>.sundial`                             |
+| Bundle ID    | `io.github.victorlou.sundial.dev`                                             | `io.github.victorlou.sundial.dev`                             | `io.github.victorlou.sundial`                                   |
+| App Group    | `group.io.github.victorlou.sundial.dev`                                       | same as Local                                                   | `group.io.github.victorlou.sundial`                             |
 | Installed by | Xcode, on the simulator (a physical device can't reach `localhost`, so use Dev) | TestFlight                                                      | TestFlight (ADR-012 E-4)                                          |
 | Data         | Seed scripts, reset at will                                                     | Seed scripts plus whatever gets typed in while testing          | Real data. **Never copied anywhere else**, except as §7 lists.                        |
 | Region       | —                                                                               | `us-east-1`                                                     | `us-east-1`                                                       |
@@ -38,11 +38,13 @@ Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
 
 | Xcode build configuration | Scheme                | Settings file           | Variant | Backend |
 | ------------------------- | --------------------- | ----------------------- | ------- | ------- |
-| `Debug-Local`             | Sundial (Local) | `Config/Local.xcconfig` | Dev     | Local   |
-| `Debug-Dev`               | Sundial (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
-| `Release-Dev`             | Sundial (Dev)   | `Config/Dev.xcconfig`   | Dev     | Dev     |
-| `Release-Prod`            | Sundial (Prod)  | `Config/Prod.xcconfig`  | Prod    | Prod    |
+| `Debug-Local`             | Sundial (Local) | `ios/Config/Local.xcconfig` | Dev     | Local   |
+| `Debug-Dev`               | Sundial (Dev)   | `ios/Config/Dev.xcconfig`   | Dev     | Dev     |
+| `Release-Dev`             | Sundial (Dev)   | `ios/Config/Dev.xcconfig`   | Dev     | Dev     |
+| `Release-Prod`            | Sundial (Prod)  | `ios/Config/Prod.xcconfig`  | Prod    | Prod    |
 
+
+Each settings file includes `ios/Config/Base.xcconfig`, which sets the bundle ID prefix and includes the developer's own git-ignored `Signing.local.xcconfig` ([07](07-local-development.md)). The Xcode project is generated from `ios/project.yml` by XcodeGen.
 
 **Keys in each settings file**, exposed to code through `Info.plist` and read in one place in `App`:
 
@@ -79,7 +81,7 @@ Names written like `<BUNDLE_PREFIX>` are fixed in P0 and then filled in here.
 | Reset the database with seed data | `supabase db reset`. It re-runs every migration, then `supabase/seed.sql`.                                                                                   |
 | Run the backend tests             | `supabase test db` (pgTAP)                                                                                                                                   |
 | Run the domain tests              | `swift test` in `ios/Packages/Domain`                                                                                                                        |
-| Seed data                         | Deterministic: named example profiles (Alice, Bob, Carol, Dave), one household, and one task per preset. It's the same set used by the domain tests' fixtures. |
+| Seed data                         | Deterministic: named example profiles (Alice, Bob, Carol, Dave), one household, and one task per preset. It's the same set used by the domain tests' fixtures. Filled in from P2 as the tables arrive. Until then `seed.sql` is empty. |
 
 
 ---
