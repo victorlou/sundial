@@ -63,7 +63,9 @@ flowchart LR
 
 ```
 /ios
-  Sundial.xcodeproj              thin App target (composition root)
+  project.yml                    XcodeGen spec for Sundial.xcodeproj (generated, git-ignored)
+  App/                           thin App target (composition root)
+  Config/                        settings files (06 §2) and per-developer signing
   Packages/
     Domain/                      pure Swift, no dependencies
     Data/                        PowerSync, Supabase, repositories
@@ -75,6 +77,8 @@ flowchart LR
     functions/                   Edge Functions (Apple token revocation)
   powersync/
     sync-streams.yaml            bucket definitions (Sync Streams, §5.1)
+    docker-compose.yaml          PowerSync Open Edition for the local stack (06 §3)
+/scripts                         doctor (checks a Mac is ready, 07)
 /.github/workflows               CI, nightly backup
 /docs                            these documents
 ```

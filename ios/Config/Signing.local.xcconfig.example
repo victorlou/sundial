@@ -1,0 +1,8 @@
+// Copy to Signing.local.xcconfig (git-ignored) and fill in.
+
+// Your Apple developer team ID (Xcode → Settings → Accounts → your team).
+DEVELOPMENT_TEAM =
+
+// Only if you sign with a team other than the project's: bundle IDs are unique per team,
+// so pick your own reverse-DNS prefix.
+// BUNDLE_PREFIX = com.example

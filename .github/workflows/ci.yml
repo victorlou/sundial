@@ -1,0 +1,25 @@
+# Pull request checks (docs/06-environments-and-release.md §4).
+# P0 runs the domain tests only. pgTAP, `supabase db lint`, and the migration check join in P2.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  domain-tests:
+    name: Domain tests
+    runs-on: ubuntu-latest
+    container: swift:6.4-noble
+    steps:
+      - uses: actions/checkout@v7
+      - name: swift test
+        run: swift test --package-path ios/Packages/Domain

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/service-sync-rules@latest/schema/sync_rules.json
+# Sync Streams: what each device downloads (architecture §5.1).
+# No streams until P2's tables exist. The service reads this file at start, so restart it after a change.
+
+config:
+  edition: 3
+
+streams: {}

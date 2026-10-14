@@ -1,0 +1,8 @@
+// Shared by every build configuration. Each settings file below includes it.
+// Keys are listed in docs/06-environments-and-release.md §2.
+
+BUNDLE_PREFIX = io.github.victorlou
+
+// Code signing is per developer and never committed: copy Signing.local.xcconfig.example
+// to Signing.local.xcconfig and set your team. It may also override BUNDLE_PREFIX.
+#include? "Signing.local.xcconfig"

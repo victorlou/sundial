@@ -1,0 +1,57 @@
+# PowerSync Open Edition for the local stack (06 §3).
+# Start Supabase first (`supabase start` in backend/): this joins its Docker network.
+# Every value here is a local default, not a secret.
+name: sundial-powersync
+
+services:
+  powersync:
+    image: journeyapps/powersync-service:1.26.1
+    restart: unless-stopped
+    command: ["start", "-r", "unified"]
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/service.yaml
+      NODE_OPTIONS: --max-old-space-size=1000
+      # `supabase_db_<project_id>`, with project_id from supabase/config.toml
+      PS_DATA_SOURCE_URI: postgres://postgres:postgres@supabase_db_sundial:5432/postgres
+      PS_STORAGE_SOURCE_URI: postgres://postgres:postgres@storage:5432/powersync_storage
+      PS_PORT: 8080
+    volumes:
+      - ./:/config:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      storage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/probes/liveness').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 2s
+      retries: 15
+    networks:
+      - default
+      - supabase
+
+  # PowerSync's bucket storage, kept apart from the Supabase database.
+  storage:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: powersync_storage
+    volumes:
+      - storage_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d powersync_storage"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  # `supabase_network_<project_id>`, created by `supabase start`
+  supabase:
+    name: supabase_network_sundial
+    external: true
+
+volumes:
+  storage_data:

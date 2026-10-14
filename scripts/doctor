@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Checks that this Mac is ready to work on Sundial (docs/07-local-development.md).
+# Exits non-zero if any required check fails. Warnings don't fail it.
+set -uo pipefail
+
+# Minimum versions: what P0 was set up and verified with.
+MIN_XCODE=27.0
+MIN_SWIFT=6.2        # swift-tools-version of ios/Packages/*
+MIN_IOS_RUNTIME=26.0 # the deployment target (NFR-06)
+MIN_XCODEGEN=2.46.0
+MIN_SUPABASE=2.120.0
+MIN_COMPOSE=5.6.0
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+failures=0
+
+if [[ -t 1 ]]; then green=$'\033[32m' red=$'\033[31m' yellow=$'\033[33m' reset=$'\033[0m'; else green='' red='' yellow='' reset=''; fi
+pass() { printf '  %s✓%s %s\n' "$green" "$reset" "$1"; }
+fail() { printf '  %s✗%s %s\n    → %s\n' "$red" "$reset" "$1" "$2"; failures=$((failures + 1)); }
+warn() { printf '  %s!%s %s\n    → %s\n' "$yellow" "$reset" "$1" "$2"; }
+
+# version_ge A B: true if version A >= version B.
+version_ge() {
+  local IFS=.
+  local -a a=($1) b=($2)
+  local i
+  for ((i = 0; i < 3; i++)); do
+    local x=${a[i]:-0} y=${b[i]:-0}
+    ((10#$x > 10#$y)) && return 0
+    ((10#$x < 10#$y)) && return 1
+  done
+  return 0
+}
+
+# first_version TEXT: the first x.y[.z] in TEXT.
+first_version() { grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' <<<"$1" | head -1; }
+
+echo "Sundial doctor"
+
+echo "Apple toolchain"
+if [[ "$(uname -s)" != Darwin ]]; then
+  fail "macOS" "the iOS app needs a Mac with Xcode"
+fi
+if xcode_out="$(xcodebuild -version 2>/dev/null)"; then
+  v="$(first_version "$xcode_out")"
+  if version_ge "$v" "$MIN_XCODE"; then
+    pass "Xcode $v ($(xcode-select -p))"
+  else
+    fail "Xcode $v is older than $MIN_XCODE" "install Xcode $MIN_XCODE+ and select it: sudo xcode-select -s /Applications/Xcode.app"
+  fi
+else
+  fail "Xcode not selected" "install Xcode $MIN_XCODE+ and select it: sudo xcode-select -s /Applications/Xcode.app"
+fi
+if swift_out="$(swift --version 2>/dev/null)"; then
+  v="$(first_version "$(grep -o 'Swift version [0-9.]*' <<<"$swift_out")")"
+  if version_ge "$v" "$MIN_SWIFT"; then pass "Swift $v"; else fail "Swift $v is older than $MIN_SWIFT" "update Xcode"; fi
+else
+  fail "Swift not found" "install Xcode $MIN_XCODE+"
+fi
+runtimes="$(xcrun simctl list runtimes 2>/dev/null | grep -oE '^iOS [0-9]+\.[0-9]+' | awk '{print $2}')"
+best=""
+for r in $runtimes; do
+  if [[ -z "$best" ]] || version_ge "$r" "$best"; then best="$r"; fi
+done
+if [[ -n "$best" ]] && version_ge "$best" "$MIN_IOS_RUNTIME"; then
+  pass "iOS $best simulator runtime"
+else
+  fail "no iOS $MIN_IOS_RUNTIME+ simulator runtime" "Xcode → Settings → Components, or: xcodebuild -downloadPlatform iOS"
+fi
+
+echo "Project tools"
+if command -v xcodegen >/dev/null; then
+  v="$(first_version "$(xcodegen --version)")"
+  if version_ge "$v" "$MIN_XCODEGEN"; then pass "XcodeGen $v"; else fail "XcodeGen $v is older than $MIN_XCODEGEN" "brew upgrade xcodegen"; fi
+else
+  fail "XcodeGen not found" "brew install xcodegen"
+fi
+if command -v supabase >/dev/null; then
+  v="$(first_version "$(supabase --version 2>/dev/null)")"
+  if version_ge "$v" "$MIN_SUPABASE"; then pass "Supabase CLI $v"; else fail "Supabase CLI $v is older than $MIN_SUPABASE" "brew upgrade supabase/tap/supabase"; fi
+else
+  fail "Supabase CLI not found" "brew install supabase/tap/supabase"
+fi
+
+echo "Docker (for the local stack)"
+if command -v docker >/dev/null; then
+  if docker info >/dev/null 2>&1; then
+    pass "Docker daemon reachable (context: $(docker context show 2>/dev/null))"
+  else
+    fail "Docker daemon not reachable" "start your Docker runtime (Colima: colima start; or OrbStack / Docker Desktop)"
+  fi
+  if compose_out="$(docker compose version 2>/dev/null)"; then
+    v="$(first_version "$compose_out")"
+    if version_ge "$v" "$MIN_COMPOSE"; then pass "Docker Compose $v"; else fail "Docker Compose $v is older than $MIN_COMPOSE" "update Docker Compose"; fi
+  else
+    fail "Docker Compose v2 not found" "brew install docker-compose (Colima), or use Docker Desktop / OrbStack"
+  fi
+else
+  fail "Docker CLI not found" "brew install docker docker-compose colima, or install OrbStack / Docker Desktop"
+fi
+
+echo "Signing (device builds only)"
+signing="$ROOT/ios/Config/Signing.local.xcconfig"
+if [[ -f "$signing" ]] && grep -qE '^DEVELOPMENT_TEAM *= *[A-Z0-9]{10}' "$signing"; then
+  pass "ios/Config/Signing.local.xcconfig sets DEVELOPMENT_TEAM"
+else
+  warn "no team in ios/Config/Signing.local.xcconfig" "simulator builds work; for a device, copy Signing.local.xcconfig.example and set DEVELOPMENT_TEAM"
+fi
+
+echo
+if ((failures > 0)); then
+  echo "$failures check(s) failed."
+  exit 1
+fi
+echo "All required checks passed."

@@ -1,0 +1,13 @@
+// Settings file for the Local backend (docs/06-environments-and-release.md §2).
+#include "Base.xcconfig"
+
+BUNDLE_ID = $(BUNDLE_PREFIX).sundial.dev
+APP_DISPLAY_NAME = Sundial Dev
+APP_ICON_NAME = AppIcon-Dev
+APP_GROUP_ID = group.$(BUNDLE_ID)
+
+// `/$()/` keeps `//` from starting a comment. The key is the local stack's fixed default, public by design.
+SUPABASE_URL = http:/$()/127.0.0.1:54321
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+POWERSYNC_URL = http:/$()/127.0.0.1:8080
+BACKEND_ENV = Local

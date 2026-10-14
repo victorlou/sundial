@@ -10,7 +10,7 @@ A mobile app for one household's routines and chores, with a Supabase + PowerSyn
 ## Rules the docs index doesn't cover
 
 - If the docs are wrong, are missing something, or contradict each other, stop and ask. Don't work around it in code.
-- When a change makes something in a current-truth file (`docs/01`, `03`, `04`, `05`, `06`) untrue, update that file in the same change.
+- When a change makes something in a current-truth file (`docs/01`, `03`, `04`, `05`, `06`, `07`) untrue, update that file in the same change.
 - When a new ADR changes an accepted one, the accepted ADR gets only a status line that points to the new ADR.
 - IDs (FR, NFR, DM, HH, AM, L, E, C, spikes, ADR numbers) are never renumbered or reused. New ones go at the end of their sequence.
 - Examples and seed data use Alice, Bob, Carol, and Dave. No real people's names in committed files.
