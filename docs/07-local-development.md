@@ -52,4 +52,5 @@ Only problems that have actually happened are listed here.
 | Symptom | Fix |
 |---|---|
 | `scripts/doctor` or `supabase start` says it can't connect to the Docker daemon | The Docker runtime isn't running. With Colima, run `colima start`, which also switches Docker to its `colima` context. |
+| `supabase start` right after `colima start` fails with `StatusDbNotReadyError … is not ready: starting` | The database container was still starting, and it carries on by itself. Wait a few seconds, then check with `supabase status`. |
 | After `supabase db reset`, PowerSync logs `Replication slot … is missing` | Expected. The reset drops PowerSync's replication slot. Within about 30 seconds PowerSync creates a new one and replicates from scratch. Nothing to do. |
