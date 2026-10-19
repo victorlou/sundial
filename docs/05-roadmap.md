@@ -1,6 +1,7 @@
 # 05 — Roadmap
 
 **Status:** Draft (2026-09-29).
+**Current phase:** P1. P0 was done on 2026-10-19.
 
 - Pace is open-ended, so phases have **exit criteria, not dates**.
 - Sizes are relative: S, M, L.
