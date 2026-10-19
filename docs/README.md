@@ -38,7 +38,7 @@ Where an ADR and a current-truth file disagree on detail, the current-truth file
 | File | Status |
 |---|---|
 | [01-requirements.md](01-requirements.md) | Approved |
-| [02-decisions/](02-decisions/README.md) | ADR-001 to ADR-013 accepted |
+| [02-decisions/](02-decisions/README.md) | ADR-001 to ADR-013 accepted, ADR-014 proposed |
 | [03-domain-model.md](03-domain-model.md) | Accepted |
 | [04-architecture.md](04-architecture.md) | Draft |
 | [05-roadmap.md](05-roadmap.md) | Draft |

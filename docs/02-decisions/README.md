@@ -1,6 +1,6 @@
 # Decisions — index
 
-**Status:** All accepted. ADR-001 to 010 on 2026-09-25, ADR-011 on 2026-09-29, ADR-012 on 2026-09-30, ADR-013 on 2026-10-07. To change a decision, write a new ADR that supersedes it. Accepted ADRs only get editorial fixes.
+**Status:** ADR-001 to 013 accepted: 001 to 010 on 2026-09-25, 011 on 2026-09-29, 012 on 2026-09-30, 013 on 2026-10-07. ADR-014 proposed, waiting on spike S2. To change a decision, write a new ADR that supersedes it. Accepted ADRs only get editorial fixes.
 
 | ADR | Decision | Options | Accepted | Hinges on |
 |---|---|---|---|---|
@@ -17,6 +17,7 @@
 | [011](ADR-011-data-deletion-and-retention.md) | Data deletion and retention | A. Hard-delete now<br>**B. Soft-delete + purge**<br>C. Soft-delete forever | **B**, 30 days for account deletion, 180 days otherwise | Recover from mistakes without breaking privacy law |
 | [012](ADR-012-environments-and-release.md) | Environments and release | A. Local + Prod<br>**B. Local + Dev + Prod**<br>C. + staging | **B**, separate app variants, Xcode Cloud from P2, TestFlight for the family | Real devices for testing, without risking family data |
 | [013](ADR-013-board-review-amendments.md) | Board review amendments | **A. One ADR for all amendments**<br>B. One ADR per amended ADR<br>C. Edit the accepted ADRs | **A**: amends 001, 002, 003, 004, 007, 008, 010, 011, and 012, one row per change (AM-01 onward) | Accepted ADRs are never rewritten |
+| [014](ADR-014-p0-spike-outcomes.md) | P0 spike outcomes | S1 open check: **X. The connector skips queued household and membership entries**<br>Y. Local-only tables until sign-in. S2: pending | **Proposed.** S1 passed, so 1b (i) stands, with **X**. S2 pending. | Writes made before sign-in are queued and upload at the first `connect()` |
 
 ## How they fit together
 
