@@ -12,7 +12,7 @@
   - A throwaway app with the five tables the criteria name.
   - Server side: the RLS from [architecture §5.2](../04-architecture.md#52-permissions-rls), a claim-or-create function, and the P2 parts of the §5.1 streams.
   - Sign-in used an email and password account on the local Supabase Auth, standing in for Sign in with Apple (spike S3). Everything after sign-in is the same either way: the session, the JWT, claim-or-create, and `connect()`.
-  - The code and the full results log are on the branch `spike/s1-powersync-local-only`, which is never merged.
+  - The code was throwaway, and it isn't kept in the repository. This ADR records what it showed.
 - S2 checks ADR-001's decision B end to end, and AM-01 asks its write-up to name the fallback candidates ([ADR-013](ADR-013-board-review-amendments.md)). Its pass criteria and open questions are in the same table.
 - **How S2 ran:**
   - On 2026-10-19, against the same local stack and versions as S1, on three iOS 27 simulators: Bob on an iPhone and an iPad, and Alice on an iPhone.
@@ -21,7 +21,7 @@
   - Join, Leave, and Change task scope ran as minimal SQL stand-ins for the P3 lifecycle functions. Each makes the same row changes, without invites, checks, or remap versions.
   - "Offline" meant the app called `disconnect()` and kept writing, which queues writes the same way a lost network does.
   - After every step, a check compared each device and each account's download with §5.1 restated in SQL and with the server's rows, and looked for rows shared between households.
-  - The code and the full results log are on the branch `spike/s2-end-to-end-sync`, which is never merged.
+  - The code was throwaway too, and isn't kept in the repository.
 
 ## S1 results
 
@@ -130,4 +130,4 @@ So no Postgres-based tool replaces PowerSync as it stands. If PowerSync ever had
 - The PowerSync GRDB integration and sub-decision 1b (ii) aren't needed.
 - [Architecture §4.2](../04-architecture.md#42-write-path-tasks-and-actions-works-offline) (finding 6), §5.1 (A, finding 5), and §5.2 (finding 7), and [domain model §2.7–§2.8](../03-domain-model.md#27-ruleversion-what-makes-occurrences-exist) and §3.1 (*Change task scope*), say what's decided here.
 - No two streams may send the same client table with different columns (finding 5).
-- S2's check script (on its spike branch) is a starting point for the download isolation test and the two-simulator script ([architecture §7](../04-architecture.md#7-testing-strategy)).
+- S2's checks showed the download isolation test and the two-simulator script can be scripted against the local stack: read each account's whole download from the PowerSync service, and compare it and each device with §5.1 restated in SQL ([architecture §7](../04-architecture.md#7-testing-strategy)).

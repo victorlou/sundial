@@ -1,6 +1,6 @@
 # Sundial
 
-A mobile app for one household's routines and chores, with a Supabase + PowerSync backend. The plan is in `docs/`. Development starts at P0.
+A mobile app for one household's routines and chores, with a Supabase + PowerSync backend. The plan is in `docs/`, and 05 says which phase is current.
 
 ## Start here
 
