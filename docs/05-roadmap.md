@@ -66,7 +66,7 @@ The **recurrence engine** is the heart of the app, but it isn't a *technical* un
 
 **Build order:**
 
-1. **Domain engine with tests E1–E6**
+1. **Domain engine with tests E1–E6** (done 2026-10-31)
 2. Repositories
 3. Today view
 4. Task editor
