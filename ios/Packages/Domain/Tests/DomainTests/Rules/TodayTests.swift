@@ -30,6 +30,72 @@ struct TodayTests {
         #expect(sections[1].items.map(\.task.title) == ["Coffee", "Stretch"])
     }
 
+    // MARK: Order within a slot (DM-26)
+
+    /// A dated to-do in Anytime (nominal period 7), so `daysLate` sets its warning level.
+    static func todo(_ id: TaskID, _ title: String, daysLate: Int, _ actions: [OccurrenceAction] = []) -> TaskRecord {
+        TaskRecord(
+            task: personalTask(id, title),
+            versions: [version(id, from: Day.prevMon, .once(date: Day.wed - daysLate), slots: [SlotFixture.anytime], policy: .carryOver)],
+            actions: actions
+        )
+    }
+
+    static func order(_ records: [TaskRecord], thresholds: WarningThresholds = .default) -> [String] {
+        TodayBuilder.build(viewer: Person.bob, date: Day.wed, tasks: records, slots: SlotFixture.all, thresholds: thresholds)
+            .allItems.map(\.task.title)
+    }
+
+    @Test("Open items come by warning level, severe to none, and by title within a level")
+    func openByWarningLevel() {
+        let records = [
+            Self.todo("apples", "Apples", daysLate: 0),
+            Self.todo("bins", "Bins", daysLate: 2),
+            Self.todo("car", "Car", daysLate: 5),
+            Self.todo("eggs", "Eggs", daysLate: 9),
+            Self.todo("dust", "Dust", daysLate: 8),
+        ]
+        let items = TodayBuilder.build(viewer: Person.bob, date: Day.wed, tasks: records, slots: SlotFixture.all).allItems
+        #expect(items.map(\.task.title) == ["Dust", "Eggs", "Car", "Bins", "Apples"])
+        #expect(items.map(\.warning) == [.severe, .severe, .strong, .mild, .none])
+    }
+
+    @Test("An overdue item resolved today sorts with the resolved items, after every open one")
+    func resolvedOverdueSortsWithResolved() throws {
+        let tickedToday = act(.complete, "aardvark", slot: SlotFixture.anytime, occurrence: Day.wed - 8, actedOn: Day.wed)
+        let records = [
+            Self.todo("aardvark", "Aardvark", daysLate: 8, [tickedToday]),
+            Self.todo("zebra", "Zebra", daysLate: 0),
+        ]
+        #expect(Self.order(records) == ["Zebra", "Aardvark"])
+        let resolved = try #require(TodayBuilder.build(viewer: Person.bob, date: Day.wed, tasks: records, slots: SlotFixture.all).items(for: "aardvark").first)
+        #expect(resolved.resolution == .done)
+        #expect(resolved.warning == .none)
+    }
+
+    @Test("Done and skipped items share the resolved group, ordered by title")
+    func doneAndSkippedShareGroup() {
+        let records = [
+            Self.todo("bins", "Bins", daysLate: 0, [act(.complete, "bins", slot: SlotFixture.anytime, occurrence: Day.wed)]),
+            Self.todo("zoo", "Zoo", daysLate: 0),
+            Self.todo("apples", "Apples", daysLate: 3, [act(.skip, "apples", slot: SlotFixture.anytime, occurrence: Day.wed - 3, actedOn: Day.wed)]),
+            Self.todo("cat", "Cat", daysLate: 0, [act(.skip, "cat", slot: SlotFixture.anytime, occurrence: Day.wed)]),
+        ]
+        #expect(Self.order(records) == ["Zoo", "Apples", "Bins", "Cat"])
+    }
+
+    @Test("The order and each item's warning use the thresholds passed in")
+    func customThresholds() {
+        // 1 and 2 days late of 7: both mild by default, so by title. With strict thresholds, Bins is strong.
+        let records = [Self.todo("apples", "Apples", daysLate: 1), Self.todo("bins", "Bins", daysLate: 2)]
+        #expect(Self.order(records) == ["Apples", "Bins"])
+
+        let strict = WarningThresholds(strong: 0.25, severe: 0.5)
+        #expect(Self.order(records, thresholds: strict) == ["Bins", "Apples"])
+        let items = TodayBuilder.build(viewer: Person.bob, date: Day.wed, tasks: records, slots: SlotFixture.all, thresholds: strict).allItems
+        #expect(items.map(\.warning) == [.strong, .mild])
+    }
+
     @Test("A lane whose slot is archived or missing shows under Anytime, keeping its slot ID (DM-19)")
     func archivedOrMissingSlot() throws {
         var slots = SlotFixture.all

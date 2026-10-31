@@ -33,6 +33,7 @@ public struct TaskDefinition: Hashable, Sendable {
     public var scope: Scope
     public var title: String
     public var notes: String?
+    /// An SF Symbol name, from the editor's curated set (ADR-015, 03 §2.6). Nil for no icon.
     public var icon: String?
     public var points: Int
     public var createdByProfileId: ProfileID
