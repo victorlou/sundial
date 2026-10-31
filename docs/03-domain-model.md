@@ -1,6 +1,6 @@
 # 03 — Domain model
 
-**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-22 are in [§9](#9-decisions).
+**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-26 are in [§9](#9-decisions).
 
 **Builds on:** [01-requirements](01-requirements.md), ADR-003 to ADR-007, ADR-010, ADR-011, and ADR-013.
 
@@ -122,7 +122,7 @@ Whoever holds a code can redeem it, so each account also has a limit on join att
 | `slotMap?` | Only on a **remap version**: old slot ID → new slot ID (§5.10) |
 | `missPolicy` | `vanish`, `markMissed`, or `carryOver`. Floating forces `carryOver` (DM-04). |
 | `assignment` | `personal` (implicitly the owner), `each(profileIds)`, or `anyOf(profileIds)` (DM-02) |
-| `floatingSeed?` | The first due date when there's no history yet ("when did you last do it?" + N) |
+| `floatingSeed?` | The first due date when there's no history yet ("when did you last do it?" + N). Required on every floating version; the editor defaults it to `effectiveFrom`. The engine uses the seed of today's version (§5.5). |
 
 The version **in effect** on date *d* is the one with the greatest `effectiveFrom ≤ d`.
 
@@ -136,7 +136,7 @@ The version **in effect** on date *d* is the one with the greatest `effectiveFro
 | `kind` | client | `complete`, `skip`, or `snooze` |
 | `slotId`, `assigneeProfileId?` | client | The lane. `assigneeProfileId` is null for `anyOf` lanes. |
 | `occurrenceDate` | client | *Which* occurrence the action targets |
-| `actedOn` | client | The logical date the action counts for. For `complete`, the day it was done (can be backdated, DM-07). For `skip`, the day the floating clock restarts from. For `snooze`, the day it was snoozed. |
+| `actedOn` | client | The logical date the action counts for. For `complete`, the day it was done (can be backdated, DM-07: a device writes `actedOn` only within today − 7 … today, and on `vanish`/`markMissed` lanes the `occurrenceDate` too; a carried or floating item can target an older occurrence). For `skip`, the day the floating clock restarts from. For `snooze`, the day it was snoozed. |
 | `actorProfileId` | client | Who performed the action, and for `complete`, who gets the credit. It can differ from the account that submitted it (the shared iPad case). |
 | `snoozeUntil?` | client | Snooze only |
 | `occurredAt`, `tzId` | client | The UTC instant and the device's time zone. For audit only. The engine never reads them. |
@@ -236,6 +236,7 @@ logicalDate = wall.date        if wall.timeOfDay ≥ dayStart
 - The comparison uses **wall-clock time, not "instant minus 5h"**, so daylight-saving changes can't move the boundary by an hour.
 - **The logical date never goes backwards on a device** (DM-20). Crossing the date line eastbound (Tokyo → LA), or moving the day start later, can make the rule above give an earlier date than the one already in use. So for each profile, the device keeps the latest logical date it has used and takes `max(rule above, that date)`. That date is stored, so relaunching the app doesn't reset it. Worked cases are in E5.
 - Other devices' dates can still be ahead of this one: an action can arrive with an `actedOn` or `occurrenceDate` later than this device's today (e.g. a partner in Tokyo, E5). The engine accepts such actions as they are, and `daysOverdue` is never negative (§5.4, §5.5).
+- The rule above is a pure function in `Domain` (`DayBoundaryRule`). `DayBoundary` in `Data` reads the clock and the time zone and calls it (architecture §3), so E5's boundary cases are Domain tests.
 - Everything below this point sees only `LogicalDate` values.
 - The engine's date arithmetic is pure Gregorian arithmetic. It never uses a time zone.
 
@@ -247,13 +248,17 @@ logicalDate = wall.date        if wall.timeOfDay ≥ dayStart
 
 | Pattern | Parameters | Allowed anchors | Due dates (fixed) |
 |---|---|---|---|
-| `once` | `date?` | fixed | The date, or `effectiveFrom` if it has no date |
-| `days` | `every n`, `start` | fixed, floating | `start + k·n` |
-| `weeks` | `every n`, `weekdays`, `start` | fixed (floating: `every n` weeks only) | The chosen weekdays in weeks where `weeksSince(start) % n == 0` |
-| `months` | `every n`, `day k` *or* `nth weekday`, `start` | fixed (floating: `every n` months only) | Day *k* clamped to the month's length (DM-06), or "the 1st/2nd/3rd/4th/last Sat" |
+| `once` | `date?` | fixed | The date. With no date: the `effectiveFrom` of the earliest version in the lane's unbroken run of undated `once` versions (DM-24) |
+| `days` | `every n`, `start` | fixed, floating | `start + k·n`, for k ≥ 0 |
+| `weeks` | `every n`, `weekdays`, `start` | fixed (floating: `every n` weeks only) | The chosen weekdays, on or after `start`, in weeks where `weeksSince(start) % n == 0`. Weeks run Sunday to Saturday, and `start`'s week is week 0 (DM-23) |
+| `months` | `every n`, `day k` *or* `nth weekday`, `start` | fixed (floating: `every n` months only) | Day *k* clamped to the month's length (DM-06), or "the 1st/2nd/3rd/4th/last Sat", on or after `start`, in months where `monthsSince(start) % n == 0`, counting from `start`'s month |
 | `yearly` | Later | | |
 
 `start` belongs to the **pattern**, not the version. Editing the slots of an "every 3 days" task, it doesn't shift which days it lands on.
+
+Floating versions use only `every n`. The interval is n days, 7n days, or n calendar months (clamped, DM-06).
+
+An undated to-do keeps its due date through edits that keep its lane, so an edit never reopens a done to-do or resets its overdue count. Moving it to another slot keeps its history too: the task editor writes a remap version (§5.10, DM-25), so a done to-do stays done and an overdue one keeps its count. A version that changes the slot without a `slotMap` starts a new lane, like any slot change (§5.2).
 
 ### 5.2 Which lanes exist on date *d*
 Take the version in effect on *d*:
@@ -281,6 +286,8 @@ Due dates therefore only exist from the task's first `effectiveFrom` onward, nev
 | `markMissed` | the same as `vanish` | **missed** in history, which breaks the streak | today's occurrence, if due |
 | `carryOver` | there's a resolving action with `occurrenceDate ≥ d` **(one tick clears the backlog, DM-03)** | nothing separately: it's folded into one item | **one** item if any due date ≤ today is unresolved |
 
+Each due date follows the policy of the version in effect on it. Switching a task to `carryOver` doesn't carry its earlier missed or vanished dates.
+
 For a carried-over item:
 - `occurrenceDate` = the latest unresolved due date ≤ today. Resolving it resolves everything before it.
 - `overdueSince` = the first unresolved due date, i.e. the first due date after the lane's last resolution.
@@ -288,7 +295,7 @@ For a carried-over item:
 
 ### 5.5 Floating lanes
 - `lastResolution` = the greatest `actedOn` among the lane's resolving actions. **Skips count too:** a skip restarts the clock (DM-05).
-- `nextDue` = `lastResolution + interval(today's version)`, or `floatingSeed` if there's no history.
+- `nextDue` = `lastResolution + interval(today's version)`, or today's version's `floatingSeed` if there's no history.
 - The lane is open when `nextDue ≤ today`, and `daysOverdue = max(0, today − nextDue)`.
 - Changing the interval takes effect right away, because the next due date is always computed from today's version.
 
@@ -308,7 +315,7 @@ The engine returns `daysOverdue` and a `nominalPeriod`:
 | Pattern | `nominalPeriod` |
 |---|---|
 | `days n` | n |
-| `weeks n` with *k* weekdays | 7n / k |
+| `weeks n` with *k* weekdays | 7n / k (floating: 7n) |
 | `months n` | 30n |
 | `once` | 7 |
 
@@ -325,22 +332,23 @@ The thresholds are presentation settings and can be tuned without touching the m
 
 ### 5.8 Snooze (R5)
 - Snooze is only available on `carryOver` and floating lanes (DM-05).
-- A snoozed item is hidden while `today < snoozeUntil` **and** there's been no resolving action since the snooze.
+- A snoozed item is hidden while `today < snoozeUntil` **and** there's been no resolving action since the snooze, meaning none with `actedOn` on or after the snooze's `actedOn`.
 - `daysOverdue` keeps counting while it's hidden.
-- If there are several snoozes, the latest one that hasn't been revoked wins.
+- If there are several snoozes, the latest one that hasn't been revoked wins: the greatest `actedOn`, and on the same day the later `snoozeUntil`.
 
 ### 5.9 Streaks and averages (FR-21)
 - **Streak** (`markMissed` lanes, grouped per task and assignee across slots):
   - Count consecutive due dates, going back from yesterday, where every slot's occurrence was resolved.
   - A date where everything was **skipped** doesn't break the streak and doesn't add to it.
   - Today adds to the streak once it's done. It never breaks the streak while it's still open.
-- **Average interval** (floating lanes): the mean gap between the last 5 `actedOn` dates of completions. Skips are left out.
+- **Average interval** (floating lanes): the mean gap between the last 5 distinct `actedOn` dates of completions. Skips are left out, and two ticks on one date count once (C1).
 
 ### 5.10 Lane continuity across slot remaps
 A **remap version** is a rule version that moves a task's lanes to other slots, such as the versions written when a profile joins another household (§3.1). Its `slotMap` records each old slot → new slot.
 - The engine carries each lane across the remap (DM-19). Everywhere in §5, the lane in the old slot before the remap's `effectiveFrom` and the lane in the new slot from that date on are **one lane**. Its actions, due dates, floating `lastResolution` (§5.5), and carry-over backlog (§5.4) continue instead of starting over.
 - If several remap versions follow each other, the lane is carried across each one in turn.
-- Remap versions are first written in P3 (Join). The P1 engine's lane keys must allow for them.
+- Remap versions are first written in P1, by the task editor when it moves a to-do to another slot (DM-25). Join writes them from P3.
+- **Open (decide when build step 4 builds the task editor):** whether moving a recurring task to another slot also writes a remap version, so its streak, backlog, and floating clock follow it. Adding a slot stays a new lane either way (E3).
 
 ---
 
@@ -355,6 +363,8 @@ today(viewerProfile, date) =
   minus snoozed items
   plus items resolved by actions with actedOn == today (so today's ticks stay visible, shown checked)
   grouped by slot, in slot sortOrder; Anytime last
+  within a slot (DM-26): open items by warning level (severe, strong, mild, none),
+    then resolved items (done or skipped today); each group by task title
     (a lane whose slot is archived or missing goes under Anytime, §5.2)
 ```
 
@@ -419,7 +429,7 @@ An unlinked profile (Dave) owns **only household-scope** tasks (DM-12).
 | Tick floss at 04:30 Tue with day start 05:00 | It counts for **Mon** (`actedOn = Mon`). |
 | Change day start 05:00 → 02:00 at 03:00 | Today jumps from Mon to Tue. Actions already recorded keep their stored dates. |
 | Change day start 02:00 → 05:00 at 03:00 Tue | The rule in §4 now gives Mon, but the logical date never goes backwards (DM-20), so **Today stays Tue**. The new day start takes effect at the next boundary: Wed starts at 05:00 Wed. Actions already recorded keep their stored dates. |
-| Partner in Tokyo ticks shared "trash" at their logical Tue, while it's still Mon evening at home | The action targets **Tue**. At home the board (logical Mon) still shows Mon open, and the engine accepts an action dated after its own today (§4). Accepted: the partner couldn't have taken the trash out at home anyway. |
+| Partner in Tokyo ticks the shared "trash" (a daily Habit, `markMissed`) at their logical Tue, while it's still Mon evening at home | The action targets **Tue**. At home the board (logical Mon) still shows Mon open, and the engine accepts an action dated after its own today (§4). Accepted: the partner couldn't have taken the trash out at home anyway. On a `carryOver` lane the same action would resolve Mon at home too, by the ≥ rule (§5.4). |
 
 ### E6 — Undo
 
@@ -454,7 +464,7 @@ Under ADR-001/007, every device writes locally first. PowerSync uploads the queu
 
 ## 9. Decisions
 
-All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come from the board review of 2026-10-01.
+All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come from the board review of 2026-10-01. DM-23 to DM-25 were settled while building the P1 engine (2026-10-31).
 
 | # | Decision |
 |---|---|
@@ -480,6 +490,10 @@ All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come fr
 | DM-20 | A device never moves a profile's logical date backwards. The engine accepts actions dated after its today, and `daysOverdue` is never negative (§4). |
 | DM-21 | Moving a personal task to the household rewrites the scope columns of the task, its rule versions, and its actions in place (*Change task scope*, §3.1). Copy + delete (DM-17) is only the fallback. |
 | DM-22 | A closed membership carries a snapshot of the leaver's name and avatar, and only that syncs for it. A deleted profile's snapshots are anonymized with it. |
+| DM-23 | Weeks run Sunday to Saturday for `weeks every n` |
+| DM-24 | An undated `once` is due at the start of its lane's run of undated `once` versions, so edits that keep the lane don't reopen it |
+| DM-25 | The task editor moves a to-do to another slot with a remap version, so its history and overdue count follow it |
+| DM-26 | Within a slot, Today lists open items by warning level, most severe first, then resolved items, each group by task title |
 
 **Why scope isn't a single `scopeId` column (DM-15):**
 - A column that points to one of two tables can't have a real foreign key in Postgres, so the database couldn't guarantee it points at a valid row.
