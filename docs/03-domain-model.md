@@ -1,6 +1,6 @@
 # 03 — Domain model
 
-**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-25 are in [§9](#9-decisions).
+**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-26 are in [§9](#9-decisions).
 
 **Builds on:** [01-requirements](01-requirements.md), ADR-003 to ADR-007, ADR-010, ADR-011, and ADR-013.
 
@@ -362,7 +362,9 @@ today(viewerProfile, date) =
     floating                → an item if nextDue ≤ today
   minus snoozed items
   plus items resolved by actions with actedOn == today (so today's ticks stay visible, shown checked)
-  grouped by slot, in slot sortOrder; Anytime last; by task title within a slot
+  grouped by slot, in slot sortOrder; Anytime last
+  within a slot (DM-26): open items by warning level (severe, strong, mild, none),
+    then resolved items (done or skipped today); each group by task title
     (a lane whose slot is archived or missing goes under Anytime, §5.2)
 ```
 
@@ -491,6 +493,7 @@ All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come fr
 | DM-23 | Weeks run Sunday to Saturday for `weeks every n` |
 | DM-24 | An undated `once` is due at the start of its lane's run of undated `once` versions, so edits that keep the lane don't reopen it |
 | DM-25 | The task editor moves a to-do to another slot with a remap version, so its history and overdue count follow it |
+| DM-26 | Within a slot, Today lists open items by warning level, most severe first, then resolved items, each group by task title |
 
 **Why scope isn't a single `scopeId` column (DM-15):**
 - A column that points to one of two tables can't have a real foreign key in Postgres, so the database couldn't guarantee it points at a valid row.
