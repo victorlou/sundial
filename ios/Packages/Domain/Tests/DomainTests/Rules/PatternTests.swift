@@ -56,12 +56,50 @@ struct PatternTests {
         #expect(after.state(of: after.lane(.profile(Person.bob), SlotFixture.anytime)) == nil)
     }
 
-    @Test("Undated once moved to another slot: like any slot change, a new lane due from the move (§5.2)")
-    func onceUndatedMovedSlot() throws {
+    @Test("Undated once in another slot without a remap: like any slot change, a new lane due from the change (§5.2)")
+    func onceUndatedNewSlotWithoutRemap() throws {
         let engine = RecurrenceEngine(record: Self.passport([SlotFixture.morning], []), today: Day.fri)
         let lane = engine.lane(.profile(Person.bob), SlotFixture.morning)
         #expect(engine.lanes() == [lane])
         #expect(try #require(engine.state(of: lane)).overdueSince == Day.thu)
+    }
+
+    /// What the task editor writes when it moves a to-do to another slot (DM-25): a remap version.
+    static func movedPassport(_ actions: [OccurrenceAction]) -> TaskRecord {
+        TaskRecord(
+            task: personalTask("passport", "Renew passport"),
+            versions: [
+                version("passport", from: Day.mon, .once(date: nil), slots: [SlotFixture.anytime], policy: .carryOver),
+                version("passport", from: Day.thu, .once(date: nil), slots: [SlotFixture.morning], policy: .carryOver,
+                        slotMap: [SlotFixture.anytime: SlotFixture.morning]),
+            ],
+            actions: actions
+        )
+    }
+
+    @Test("Undated once moved with a remap: the overdue count carries on in the new slot (DM-25)")
+    func onceUndatedMovedKeepsBacklog() throws {
+        let engine = RecurrenceEngine(record: Self.movedPassport([]), today: Day.fri)
+        let lane = engine.lane(.profile(Person.bob), SlotFixture.morning)
+        #expect(engine.lanes() == [lane])
+        #expect(engine.isDue(lane, on: Day.thu) == false)
+        let state = try #require(engine.state(of: lane))
+        #expect(state.overdueSince == Day.mon)
+        #expect(state.daysOverdue == 4)
+
+        // In Today it shows under Morning.
+        let today = TodayBuilder.build(viewer: Person.bob, date: Day.fri, tasks: [Self.movedPassport([])], slots: SlotFixture.all)
+        #expect(today.section(of: "passport")?.id == SlotFixture.morning)
+    }
+
+    @Test("Undated once moved with a remap after it was done: it stays done (DM-25)")
+    func onceUndatedMovedStaysDone() {
+        let done = act(.complete, "passport", slot: SlotFixture.anytime, occurrence: Day.mon, actedOn: Day.tue)
+        let engine = RecurrenceEngine(record: Self.movedPassport([done]), today: Day.fri)
+        let lane = engine.lane(.profile(Person.bob), SlotFixture.morning)
+        #expect(engine.state(of: lane) == nil)
+        #expect(engine.status(of: lane, on: Day.mon) == .done)
+        #expect(TodayBuilder.build(viewer: Person.bob, date: Day.fri, tasks: [Self.movedPassport([done])], slots: SlotFixture.all).allItems.isEmpty)
     }
 
     @Test("days every n: start + k·n, nothing before start")

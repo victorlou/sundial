@@ -1,6 +1,6 @@
 # 03 — Domain model
 
-**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-24 are in [§9](#9-decisions).
+**Status:** Accepted (2026-09-29). Decisions DM-01 to DM-25 are in [§9](#9-decisions).
 
 **Builds on:** [01-requirements](01-requirements.md), ADR-003 to ADR-007, ADR-010, ADR-011, and ADR-013.
 
@@ -258,7 +258,7 @@ logicalDate = wall.date        if wall.timeOfDay ≥ dayStart
 
 Floating versions use only `every n`. The interval is n days, 7n days, or n calendar months (clamped, DM-06).
 
-An undated to-do keeps its due date through edits that keep its lane, so an edit never reopens a done to-do or resets its overdue count. Moving it to another slot is a slot change like any other: a new lane, due from the move (§5.2).
+An undated to-do keeps its due date through edits that keep its lane, so an edit never reopens a done to-do or resets its overdue count. Moving it to another slot keeps its history too: the task editor writes a remap version (§5.10, DM-25), so a done to-do stays done and an overdue one keeps its count. A version that changes the slot without a `slotMap` starts a new lane, like any slot change (§5.2).
 
 ### 5.2 Which lanes exist on date *d*
 Take the version in effect on *d*:
@@ -347,7 +347,8 @@ The thresholds are presentation settings and can be tuned without touching the m
 A **remap version** is a rule version that moves a task's lanes to other slots, such as the versions written when a profile joins another household (§3.1). Its `slotMap` records each old slot → new slot.
 - The engine carries each lane across the remap (DM-19). Everywhere in §5, the lane in the old slot before the remap's `effectiveFrom` and the lane in the new slot from that date on are **one lane**. Its actions, due dates, floating `lastResolution` (§5.5), and carry-over backlog (§5.4) continue instead of starting over.
 - If several remap versions follow each other, the lane is carried across each one in turn.
-- Remap versions are first written in P3 (Join). The P1 engine's lane keys must allow for them.
+- Remap versions are first written in P1, by the task editor when it moves a to-do to another slot (DM-25). Join writes them from P3.
+- **Open (decide when build step 4 builds the task editor):** whether moving a recurring task to another slot also writes a remap version, so its streak, backlog, and floating clock follow it. Adding a slot stays a new lane either way (E3).
 
 ---
 
@@ -461,7 +462,7 @@ Under ADR-001/007, every device writes locally first. PowerSync uploads the queu
 
 ## 9. Decisions
 
-All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come from the board review of 2026-10-01. DM-23 and DM-24 were settled while building the P1 engine (2026-10-31).
+All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come from the board review of 2026-10-01. DM-23 to DM-25 were settled while building the P1 engine (2026-10-31).
 
 | # | Decision |
 |---|---|
@@ -489,6 +490,7 @@ All accepted. DM-01 was accepted through HH-03 (ADR-010). DM-19 to DM-22 come fr
 | DM-22 | A closed membership carries a snapshot of the leaver's name and avatar, and only that syncs for it. A deleted profile's snapshots are anonymized with it. |
 | DM-23 | Weeks run Sunday to Saturday for `weeks every n` |
 | DM-24 | An undated `once` is due at the start of its lane's run of undated `once` versions, so edits that keep the lane don't reopen it |
+| DM-25 | The task editor moves a to-do to another slot with a remap version, so its history and overdue count follow it |
 
 **Why scope isn't a single `scopeId` column (DM-15):**
 - A column that points to one of two tables can't have a real foreign key in Postgres, so the database couldn't guarantee it points at a valid row.
